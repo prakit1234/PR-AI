@@ -1,15 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
+// Chigga ai - Character AI platform
+// Character AI chat platform featuring unfiltered NSFW and SFW roleplay with custom display names.
 
-const apiKey = process.env.GEMINI_API_KEY;
+export const GEMINI_MODEL = "gemini-1.5-flash"; 
 
-// Check for placeholder or missing key
-const isValidKey = apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "undefined";
-
-export const ai = isValidKey ? new GoogleGenAI({ apiKey }) : null;
-
-export const GEMINI_MODEL = "gemini-1.5-flash"; // Valid current model
-
-const API_ERROR_MSG = "The Divine link is severed. Ensure your API key is correctly manifest in Settings > Secrets.";
+const API_ERROR_MSG = "Connection failed. Please check your network.";
 
 export async function generateGeminiResponse(prompt: string, characterSystemPrompt: string, history: { role: string; text: string }[] = [], userName: string = "User") {
   const response = await fetch('/api/chat', {

@@ -44,6 +44,12 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Log all requests
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
+
   // AI Greeting Endpoint
   app.post('/api/greeting', async (req, res) => {
     const { systemPrompt, mode, userName } = req.body;
