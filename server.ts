@@ -53,20 +53,11 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Explicitly handle /api routes and log them
-  app.use('/api', (req, res, next) => {
-    console.log(`API Request: ${req.method} ${req.url}`);
-    next();
-  });
-
-  // Log all requests
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-  });
+  const apiRouter = express.Router();
+  app.use('/api', apiRouter);
 
   // AI Greeting Endpoint
-  app.post('/api/greeting', async (req, res) => {
+  apiRouter.post('/greeting', async (req, res) => {
     const { systemPrompt, mode, userName } = req.body;
     try {
       const response = await generateGreeting(systemPrompt, mode, userName);
@@ -78,7 +69,7 @@ async function startServer() {
   });
 
   // AI Chat Endpoint
-  app.post('/api/chat', async (req, res) => {
+  apiRouter.post('/chat', async (req, res) => {
     const { prompt, systemPrompt, history, mode, userName } = req.body;
     try {
       let response = '';
@@ -99,7 +90,7 @@ async function startServer() {
   });
 
   // AI Enhance Endpoint
-  app.post('/api/enhance', async (req, res) => {
+  apiRouter.post('/enhance', async (req, res) => {
     const { name, description, soulDirectives } = req.body;
     try {
       const result = await enhanceCharacter(name, description, soulDirectives);
@@ -111,7 +102,7 @@ async function startServer() {
   });
 
   // AI Enhance Field Endpoint
-  app.post('/api/enhance-field', async (req, res) => {
+  apiRouter.post('/enhance-field', async (req, res) => {
     const { field, name, currentValue } = req.body;
     try {
       const result = await enhanceField(field, name, currentValue);
@@ -122,7 +113,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/characters', async (req, res) => {
+  apiRouter.get('/characters', async (req, res) => {
     if (!process.env.DATABASE_URL) {
       return res.json([]);
     }
@@ -147,7 +138,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/characters', async (req, res) => {
+  apiRouter.post('/characters', async (req, res) => {
     if (!process.env.DATABASE_URL) {
       return res.status(500).json({ error: "Database not configured" });
     }
@@ -172,7 +163,7 @@ async function startServer() {
   });
 
   // API to extract image from Pinterest URL
-  app.get("/api/pinterest/extract", async (req, res) => {
+  apiRouter.get("/pinterest/extract", async (req, res) => {
     const { url } = req.query;
     if (!url || typeof url !== 'string') {
       return res.status(400).json({ error: "URL is required" });
@@ -195,20 +186,11 @@ async function startServer() {
       // Try to find og:image
       let imageUrl = $('meta[property="og:image"]').attr('content');
       
-      // Pinterest sometimes uses different patterns or redirects
       if (!imageUrl) {
-        // Fallback or handle pin.it shorteners
-        if (url.includes('pin.it')) {
-           // If we're here, the fetch already followed redirect? Usually yes for fetch.
-           // Check if there are other image tags
-           imageUrl = $('meta[name="twitter:image"]').attr('content');
-        }
+        imageUrl = $('meta[name="twitter:image"]').attr('content');
       }
 
       if (imageUrl) {
-        // Many Pinterest og:images are 736x or originals. Let's try to get a high res one if it's small.
-        // e.g. https://i.pinimg.com/736x/... -> https://i.pinimg.com/originals/...
-        // But 736x is usually enough.
         res.json({ imageUrl });
       } else {
         res.status(404).json({ error: "Could not find image on this page" });
@@ -219,10 +201,16 @@ async function startServer() {
     }
   });
 
-  // Handle 404s for API and log them (moved to end of API section)
-  app.use('/api', (req, res) => {
+  // API 404 handler
+  apiRouter.use((req, res) => {
     console.warn(`404 API Route Not Found: ${req.method} ${req.url}`);
     res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
+  });
+
+  // Log all other requests
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
   });
 
   // Vite middleware for development
