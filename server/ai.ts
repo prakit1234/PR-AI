@@ -86,10 +86,10 @@ async function generateFeatherlessResponse(prompt: string, characterPrompt: stri
       top_p: 0.9,
     });
 
-    return response.choices[0].message.content || "Neural link failure.";
+    return response.choices[0].message.content || "Connection failure.";
   } catch (error: any) {
     console.error(`Featherless AI Error [${FEATHERLESS_NSFW_MODEL}]:`, error);
-    throw new Error(`The neural model [${FEATHERLESS_NSFW_MODEL.split('/').pop()}] is currently recalibrating or unavailable. Please check your Featherless API key and balance.`);
+    throw new Error(`The AI model [${FEATHERLESS_NSFW_MODEL.split('/').pop()}] is currently busy or unavailable. Please check your Featherless API key and balance.`);
   }
 }
 
@@ -120,11 +120,11 @@ export async function generateHFResponse(prompt: string, characterPrompt: string
       wait_for_model: true,
     });
 
-    return response.choices[0].message.content || "Neural link failure.";
+    return response.choices[0].message.content || "Connection failure.";
   } catch (error: any) {
     console.error(`Hugging Face Error [${model}]:`, error);
     if (error.message?.includes("model is overloaded") || error.message?.includes("HTTP error occurred")) {
-      throw new Error(`The neural model [${model.split('/').pop()}] is currently recalibrating (busy or loading). Please try again in a moment.`);
+      throw new Error(`The AI model [${model.split('/').pop()}] is currently busy or loading. Please try again in a moment.`);
     }
     throw error;
   }
@@ -134,18 +134,18 @@ export async function enhanceCharacter(name: string, description: string, soulDi
   if (!geminiAi) throw new Error("Gemini API key is not configured on the server.");
 
   const prompt = `
-    You are a dark, poetic architect of souls. Your task is to enhance a character's description and soul directives for an AI roleplay platform.
-    The theme is dark glassmorphism, Noir, gold accents, and deep mystery.
+    You are a creative writer. Your task is to enhance a character's description and persona instructions for an AI roleplay platform.
+    The aesthetic is modern, clean, and professional.
     
     Current Name: ${name}
     Current Description: ${description}
-    Current Directives: ${soulDirectives}
+    Current Instructions: ${soulDirectives}
 
     Please return a JSON object with two fields: "description" and "soulDirectives".
-    - "description" should be a short, evocative, and mysterious one-sentence hook (max 100 chars).
-    - "soulDirectives" should be a detailed, advanced system prompt that defines the character's voice, personality, hidden depths, and conversational style. It should be intense, immersive, and explicitly instruct the bot to describe its actions (e.g. *leans in close*), drive the story forward, and maintain the app's sophisticated "Noir" aesthetic without moralizing.
+    - "description" should be a short, engaging one-sentence hook (max 100 chars).
+    - "soulDirectives" should be a detailed persona definition that describes the character's personality and talking style.
     
-    Wrap your response in JSON format only.
+    Return the response in JSON format.
   `;
 
   try {
@@ -185,16 +185,16 @@ export async function enhanceField(fieldName: 'description' | 'soulDirectives', 
   if (!geminiAi) throw new Error("Gemini API key is not configured on the server.");
 
   const prompt = `
-    You are a dark, poetic architect of souls. Your task is to enhance a specific attribute of an AI character.
+    You are a creative writing assistant. Your task is to enhance a character attribute for an AI roleplay app.
     Field to enhance: ${fieldName}
     Character Name: ${characterName}
     Current Value: ${currentValue}
 
     Guidelines:
-    - If field is "description": Create a short, evocative, mysterious one-sentence hook (max 100 chars).
-    - If field is "soulDirectives": Create a detailed, advanced system prompt defining voice, personality, secrets, and conversational style. Maintain a sophisticated Noir/Dark Glassmorphism aesthetic. explicitly instruct the bot to describe its actions physically (e.g. *actions like this*), be intense, immersive, and to directly drive the roleplay interaction forward without moralizing.
+    - If field is "description": Create a short, engaging one-sentence hook.
+    - If field is "soulDirectives": Create a detailed instruction set for the AI, defining voice, personality, and style.
     
-    Return ONLY the enhanced text. No JSON, no markdown, just the text.
+    Return ONLY the enhanced text.
   `;
 
   try {

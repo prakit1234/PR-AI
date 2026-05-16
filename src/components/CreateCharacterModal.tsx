@@ -134,8 +134,8 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
 
         <div className="p-10 border-b border-white/5 flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-3xl font-serif text-white tracking-widest uppercase">The Manifestation</h2>
-            <p className="font-script text-xl text-gold-500/60 leading-none lowercase">Define a new essence</p>
+            <h2 className="text-3xl font-serif text-white tracking-widest uppercase">Create Character</h2>
+            <p className="font-script text-xl text-gold-500/60 leading-none lowercase">Configure your character</p>
           </div>
           <button onClick={onClose} className="p-2 text-white/20 hover:text-white transition-colors">
             <X size={24} strokeWidth={1} />
@@ -145,7 +145,7 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
         <form onSubmit={handleSubmit} className="p-10 space-y-10 overflow-y-auto custom-scrollbar">
           <div className="flex gap-12 flex-col md:flex-row">
             <div className="space-y-6">
-              <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Vessel</label>
+              <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Avatar</label>
               <div className="relative group">
                 <div className="absolute inset-0 bg-gold-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl pointer-events-none" />
                 <img 
@@ -172,14 +172,14 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
                 />
                 {error && <p className="text-[9px] text-red-500/60 lowercase italic">{error}</p>}
                 {!error && !isExtracting && avatar.includes('pinimg.com') && (
-                  <p className="text-[9px] text-gold-500/40 lowercase italic">Pinterest link manifest successful</p>
+                  <p className="text-[9px] text-gold-500/40 lowercase italic">Image link matched</p>
                 )}
               </div>
             </div>
 
             <div className="flex-1 space-y-10">
               <div className="space-y-4">
-                <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Incantation Name</label>
+                <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Character Name</label>
                 <input 
                   required
                   value={name}
@@ -191,7 +191,7 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
                   )}
                 />
                 {error === "Provide a name before seeking divine inspiration." && (
-                  <p className="text-[10px] text-red-500/80 italic lowercase animate-pulse">Divine inspiration requires a name to anchor the soul.</p>
+                  <p className="text-[10px] text-red-500/80 italic lowercase animate-pulse">Character name is required for AI enhancement.</p>
                 )}
               </div>
 
@@ -205,13 +205,13 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
                     className="text-[9px] uppercase tracking-widest text-gold-500/60 hover:text-gold-400 transition-colors flex items-center gap-1 disabled:opacity-50"
                   >
                     {enhancingField === 'description' ? <Loader2 size={10} className="animate-spin" /> : <Wand2 size={10} />}
-                    {enhancingField === 'description' ? 'Enhancing...' : 'Enhance'}
+                    {enhancingField === 'description' ? 'Enhancing...' : 'Auto-Generate'}
                   </button>
                 </div>
                 <input 
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  placeholder="A whisper of their past..."
+                  placeholder="A short tagline..."
                   className="w-full bg-transparent border-b border-white/10 px-0 py-4 font-serif text-lg italic text-white/60 placeholder:text-white/5 focus:outline-none focus:border-gold-500/50 transition-all"
                 />
               </div>
@@ -220,7 +220,7 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Soul Directives</label>
+              <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">Persona Instructions</label>
               <button
                 type="button"
                 onClick={() => handleEnhanceField('soulDirectives')}
@@ -228,7 +228,7 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
                 className="text-[9px] uppercase tracking-widest text-gold-500/60 hover:text-gold-400 transition-colors flex items-center gap-1 disabled:opacity-50"
               >
                 {enhancingField === 'soulDirectives' ? <Loader2 size={10} className="animate-spin" /> : <Wand2 size={10} />}
-                {enhancingField === 'soulDirectives' ? 'Enhancing...' : 'Enhance'}
+                {enhancingField === 'soulDirectives' ? 'Enhancing...' : 'Auto-Generate'}
               </button>
             </div>
             <textarea 
@@ -236,19 +236,19 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
               rows={3}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Define their voice, desires, and secrets..."
+              placeholder="How should the character behave? (e.g. 'You are a friendly cat...')"
               className="w-full bg-transparent border border-white/10 p-6 font-serif text-lg italic text-white/80 placeholder:text-white/20 focus:outline-none focus:border-gold-500/30 transition-all resize-none"
             />
           </div>
 
           <div className="space-y-6">
-            <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">First Message (Introduction)</label>
+            <label className="block text-[10px] font-sans uppercase tracking-[0.5em] text-white/30">First Message</label>
             <textarea 
               required
               rows={2}
               value={greeting}
               onChange={(e) => setGreeting(e.target.value)}
-              placeholder="How do they first speak to you? (e.g. *leans in with a smirk* 'I've been waiting for you...')"
+              placeholder="What do they say first? (e.g. *smiles* 'Hello there!')"
               className="w-full bg-transparent border border-white/10 p-6 font-serif text-lg italic text-white/80 placeholder:text-white/20 focus:outline-none focus:border-gold-500/30 transition-all resize-none"
             />
           </div>
@@ -257,9 +257,9 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
             <div className="flex items-center gap-3">
               {isPublic ? <Globe className="text-gold-500" size={18} /> : <Lock className="text-white/20" size={18} />}
               <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-widest text-white/60">Registry Visibility</span>
+                <span className="text-[10px] uppercase tracking-widest text-white/60">Public Sharing</span>
                 <span className="text-[9px] text-white/30 lowercase italic">
-                  {isPublic ? "Shared with the collective archives" : "Restricted to your private link"}
+                  {isPublic ? "Available to everyone" : "Private to you"}
                 </span>
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function CreateCharacterModal({ onClose, onSave }: CreateCharacte
             <div className="absolute inset-0 bg-gold-500/5 translate-y-full group-hover:translate-y-0 transition-transform duration-700" />
             <div className="relative z-10 flex items-center justify-center gap-3">
               {isPublishing && <Loader2 className="animate-spin" size={20} />}
-              <span>{isPublishing ? 'Anchoring Essence...' : 'Manifest Presence'}</span>
+              <span>{isPublishing ? 'Saving...' : 'Save and Start Chatting'}</span>
             </div>
           </button>
         </form>

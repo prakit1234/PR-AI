@@ -51,7 +51,7 @@ export default function CharacterCard({ character, onSelect, isSelected }: Chara
             )}
           </div>
           <p className="font-script text-xl text-gold-500/60 leading-none">
-            {character.isCustom ? (character.isPublic ? 'Global Archetype' : 'Private Essence') : 'Signature Companion'}
+            {character.isCustom ? (character.isPublic ? 'Public' : 'Private') : 'Featured'}
           </p>
         </div>
         
@@ -61,7 +61,7 @@ export default function CharacterCard({ character, onSelect, isSelected }: Chara
 
         <div className="pt-4 flex items-center gap-2">
           <div className="h-px flex-1 bg-white/10 group-hover:bg-gold-500/30 transition-colors" />
-          <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-sans">Initialize</span>
+          <span className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-sans">Select</span>
         </div>
       </div>
     </motion.button>

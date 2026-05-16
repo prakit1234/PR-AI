@@ -46,7 +46,7 @@ export default function Auth() {
             </div>
             <div className="h-px w-24 bg-gold-500/50 mx-auto mt-2" />
             <p className="text-gold-500/40 font-script text-2xl pt-4">
-              Step into the archives
+              Connect and chat
             </p>
           </div>
 
@@ -60,7 +60,7 @@ export default function Auth() {
               isLoading ? "opacity-50 cursor-not-allowed" : "hover:border-gold-500/50"
             )}
           >
-            {isLoading ? "Opening Archives..." : "Enter the Presence"}
+            {isLoading ? "Connecting..." : "Sign in with Google"}
           </motion.button>
 
           <p className="text-[10px] uppercase tracking-[0.5em] text-white/10 font-sans">

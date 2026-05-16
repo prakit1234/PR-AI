@@ -40,9 +40,24 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  await initDb();
+  console.log(`Starting server in ${process.env.NODE_ENV || 'development'} mode`);
+
+  // Root health check
+  app.get('/health', (req, res) => {
+    console.log('Health check requested');
+    res.send('OK');
+  });
+
+  // Non-blocking DB init
+  initDb().then(() => console.log("DB initialized successfully")).catch(err => console.error("Database initialization failed:", err));
 
   app.use(express.json());
+
+  // Explicitly handle /api routes and log them
+  app.use('/api', (req, res, next) => {
+    console.log(`API Request: ${req.method} ${req.url}`);
+    next();
+  });
 
   // Log all requests
   app.use((req, res, next) => {
@@ -202,6 +217,12 @@ async function startServer() {
       console.error("Pinterest extraction error:", error);
       res.status(500).json({ error: "Failed to extract image" });
     }
+  });
+
+  // Handle 404s for API and log them (moved to end of API section)
+  app.use('/api', (req, res) => {
+    console.warn(`404 API Route Not Found: ${req.method} ${req.url}`);
+    res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
   });
 
   // Vite middleware for development

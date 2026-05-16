@@ -268,7 +268,7 @@ export default function App() {
                   {publicLoading && registryTab === 'global' ? (
                     <div className="col-span-full py-40 flex flex-col items-center justify-center space-y-4">
                       <Loader2 className="animate-spin text-gold-500/20" size={40} strokeWidth={1} />
-                      <p className="text-gold-500/20 font-serif italic uppercase tracking-widest text-[10px]">Loading collective registry...</p>
+                      <p className="text-gold-500/20 font-serif italic uppercase tracking-widest text-[10px]">Loading public library...</p>
                     </div>
                   ) : displayedCharacters.length === 0 ? (
                     <div className="col-span-full py-40 flex flex-col items-center justify-center space-y-4 border-r border-b border-white/5">

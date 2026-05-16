@@ -232,7 +232,7 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
                   />
                 ))}
               </div>
-              <span className="font-serif text-sm italic text-gold-400/40">The presence is shifting...</span>
+              <span className="font-serif text-sm italic text-gold-400/40">Character is thinking...</span>
             </div>
           </motion.div>
         )}

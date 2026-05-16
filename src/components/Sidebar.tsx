@@ -95,7 +95,7 @@ export default function Sidebar({
                         {character?.name}
                       </div>
                       <div className="text-[10px] text-white/10 truncate font-sans uppercase tracking-tighter">
-                        Active conversation
+                        Active chat
                       </div>
                     </div>
                   </div>
