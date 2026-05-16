@@ -1,6 +1,6 @@
 {
-  "name": "Remix: Ewandchi AI",
-  "description": "A character AI chat platform with dark glassmorphism design and advanced AI personalities.",
+  "name": "Chigga ai",
+  "description": "A character AI chat platform featuring unfiltered NSFW and SFW roleplay with custom display names.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

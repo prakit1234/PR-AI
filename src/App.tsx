@@ -220,8 +220,8 @@ export default function App() {
                     <Menu size={28} strokeWidth={1} />
                   </button>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full border border-gold-500/20 flex items-center justify-center font-serif text-gold-500 text-lg italic">P</div>
-                    <h1 className="font-serif text-3xl text-white tracking-widest uppercase">Prai</h1>
+                    <div className="w-8 h-8 rounded-full border border-gold-500/20 flex items-center justify-center font-serif text-gold-500 text-lg italic">C</div>
+                    <h1 className="font-serif text-3xl text-white tracking-widest uppercase">Chigga ai</h1>
                   </div>
                 </div>
 
@@ -323,7 +323,7 @@ export default function App() {
 
               <div className="relative group">
                 <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-500/20 to-transparent -top-10" />
-                <h3 className="text-4xl md:text-6xl font-serif text-white tracking-widest italic opacity-80">Welcome to Prai</h3>
+                <h3 className="text-4xl md:text-6xl font-serif text-white tracking-widest italic opacity-80">Welcome to Chigga ai</h3>
                 <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-500/20 to-transparent -bottom-10" />
               </div>
 
