@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Trash2, Send, BrainCircuit } from 'lucide-react';
-import { Character, Message } from '../types';
-import { generateGeminiResponse } from '../lib/gemini';
+import { Menu, X, Trash2, Send, BrainCircuit, Shield, ShieldOff } from 'lucide-react';
+import { Character, Message, UserSettings } from '../types';
+import { generateGeminiResponse, generateGreeting } from '../lib/gemini';
 import { generateHFResponse } from '../lib/huggingface';
 import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -13,14 +13,12 @@ interface ChatWindowProps {
   onSendMessage: (content: string, role: 'user' | 'assistant') => void;
   onClearChat: () => void;
   onMenuToggle?: () => void;
+  settings: UserSettings;
 }
 
-export default function ChatWindow({ character, messages, onSendMessage, onClearChat, onMenuToggle }: ChatWindowProps) {
+export default function ChatWindow({ character, messages, onSendMessage, onClearChat, onMenuToggle, settings }: ChatWindowProps) {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [modelType, setModelType] = useState<'gemini' | 'hf'>(
-    (import.meta as any).env.VITE_HUGGING_FACE_ACCESS_TOKEN ? 'hf' : 'gemini'
-  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +29,35 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
       });
     }
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    const getGreeting = async () => {
+      // If we already have messages, don't greet
+      if (messages.length > 0 || isTyping) return;
+
+      // 1. If the character has a pre-defined greeting, use it immediately
+      if (character.greeting) {
+        onSendMessage(character.greeting, 'assistant');
+        return;
+      }
+
+      // 2. Only generate AI greeting for server-based bots (isCustom is false)
+      if (!character.isCustom) {
+        setIsTyping(true);
+        try {
+          const model = settings.isNsfw ? 'nsfw' : 'sfw-gemini';
+          const greeting = await generateGreeting(character.systemPrompt, model, settings.displayName);
+          onSendMessage(greeting, 'assistant');
+        } catch (error) {
+          console.error("Greeting failed:", error);
+        } finally {
+          setIsTyping(false);
+        }
+      }
+    };
+
+    getGreeting();
+  }, [character.id, settings.isNsfw]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,37 +71,19 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
     try {
       let aiResponse = '';
 
-      const tryGemini = async () => {
-        return await generateGeminiResponse(userMessage, messages.map(m => ({ 
+      if (settings.isNsfw) {
+        aiResponse = await generateHFResponse(userMessage, character.systemPrompt, true, settings.displayName);
+      } else {
+        aiResponse = await generateGeminiResponse(userMessage, character.systemPrompt, messages.map(m => ({ 
           role: m.role, 
           text: m.content 
-        })));
-      };
-
-      const tryHF = async () => {
-        return await generateHFResponse(userMessage, character.systemPrompt);
-      };
-
-      if (modelType === 'gemini') {
-        try {
-          aiResponse = await tryGemini();
-        } catch (e) {
-          console.warn("Intelligence failed, reaching for Echoes...", e);
-          aiResponse = await tryHF();
-        }
-      } else {
-        try {
-          aiResponse = await tryHF();
-        } catch (e) {
-          console.warn("Echoes failed, awakening Intelligence...", e);
-          aiResponse = await tryGemini();
-        }
+        })), settings.displayName);
       }
 
       onSendMessage(aiResponse, 'assistant');
     } catch (error) {
       console.error(error);
-      onSendMessage("The neural pathways are fractured. Both Intelligence and Echoes have failed to manifest.", 'assistant');
+      onSendMessage("Connection error. The character could not respond.", 'assistant');
     } finally {
       setIsTyping(false);
     }
@@ -101,38 +110,30 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
             <h2 className="text-lg md:text-2xl font-serif text-white tracking-wide">{character.name}</h2>
             <div className="flex items-center gap-2">
               <div className="w-1 h-1 rounded-full bg-gold-500/50" />
-              <span className="text-[9px] md:text-[11px] font-script text-gold-500/60 lowercase italic">A link established</span>
+              <span className="text-[9px] md:text-[11px] font-script text-gold-500/60 lowercase italic">Connected</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">
-          <div className="hidden sm:flex items-center gap-1">
-            <button
-              onClick={() => setModelType('gemini')}
-              className={cn(
-                "px-3 py-1 font-sans text-[10px] uppercase tracking-[0.2em] transition-all",
-                modelType === 'gemini' ? "text-gold-400" : "text-white/20 hover:text-white/40"
-              )}
-            >
-              Intelligence
-            </button>
-            <div className="w-1 h-1 rounded-full bg-white/10" />
-            <button
-              onClick={() => setModelType('hf')}
-              className={cn(
-                "px-3 py-1 font-sans text-[10px] uppercase tracking-[0.2em] transition-all",
-                modelType === 'hf' ? "text-gold-400" : "text-white/20 hover:text-white/40"
-              )}
-            >
-              Echoes
-            </button>
+          <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.02] border border-white/5">
+            {settings.isNsfw ? (
+              <>
+                <ShieldOff size={10} className="text-red-500/50" />
+                <span className="text-[10px] uppercase tracking-widest text-red-500/40">Explicit</span>
+              </>
+            ) : (
+              <>
+                <Shield size={10} className="text-gold-500/50" />
+                <span className="text-[10px] uppercase tracking-widest text-gold-500/40">Filtered</span>
+              </>
+            )}
           </div>
 
           <button
             onClick={onClearChat}
             className="p-2 text-white/10 hover:text-gold-500/50 transition-all"
-            title="Erase History"
+            title="Clear Chat"
           >
             <Trash2 size={16} />
           </button>
@@ -155,7 +156,7 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
                 <BrainCircuit size={24} />
               </div>
               <p className="text-[10px] uppercase tracking-[0.4em] font-black italic">
-                Awaiting Transmission
+                Ready for message
               </p>
             </motion.div>
           ) : (
@@ -181,7 +182,7 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
                     )}
                   >
                     <span className="font-serif text-sm tracking-widest text-white/40 uppercase">
-                      {message.role === 'user' ? 'The Seeker' : character.name}
+                      {message.role === 'user' ? settings.displayName : character.name}
                     </span>
                     <div className="h-px w-8 bg-white/5" />
                     <span className="text-[9px] text-white/10 uppercase tracking-tighter">
@@ -253,7 +254,7 @@ export default function ChatWindow({ character, messages, onSendMessage, onClear
                   handleSubmit(e);
                 }
               }}
-              placeholder={`Speak your truth...`}
+              placeholder={`Send a message...`}
               rows={1}
               className="w-full bg-transparent border-b border-white/10 py-4 px-0 focus:outline-none focus:border-gold-500/50 transition-all text-white placeholder:text-white/10 resize-none max-h-40 font-serif text-xl italic"
             />

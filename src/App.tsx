@@ -3,7 +3,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth } from './lib/firebase';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Character, ChatSession, Message } from './types';
+import { Character, ChatSession, Message, UserSettings } from './types';
 import { CHARACTERS } from './constants';
 import Layout from './components/Layout';
 import Auth from './components/Auth';
@@ -11,20 +11,40 @@ import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import CharacterCard from './components/CharacterCard';
 import CreateCharacterModal from './components/CreateCharacterModal';
-import { Sparkles, ShieldAlert, Plus, Menu } from 'lucide-react';
+import { Sparkles, ShieldAlert, Plus, Menu, Globe, User, Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { usePublicCharacters } from './hooks/usePublicCharacters';
 
 export default function App() {
   const [user, loading] = useAuthState(auth);
   const [sessions, setSessions] = useLocalStorage<ChatSession[]>('ewandchi_sessions', []);
   const [customCharacters, setCustomCharacters] = useLocalStorage<Character[]>('ewandchi_custom_chars', []);
   const [isVerified, setIsVerified] = useLocalStorage<boolean>('ewandchi_age_verified', false);
+  const [settings, setSettings] = useLocalStorage<UserSettings>('ewandchi_settings', {
+    displayName: auth.currentUser?.displayName || 'User',
+    isNsfw: false
+  });
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isSelectingCharacter, setIsSelectingCharacter] = useState(false);
   const [isCreatingCharacter, setIsCreatingCharacter] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [registryTab, setRegistryTab] = useState<'personal' | 'global'>('personal');
 
-  const allCharacters = useMemo(() => [...CHARACTERS, ...customCharacters], [customCharacters]);
+  const { characters: publicCharacters, loading: publicLoading } = usePublicCharacters();
+
+  const allCharacters = useMemo(() => {
+    // Combine signature characters, local customs, and public ones (deduplicated by ID)
+    const base = [...CHARACTERS, ...customCharacters];
+    const publicExcludingLocal = publicCharacters.filter(pc => !base.some(bc => bc.id === pc.id));
+    return [...base, ...publicExcludingLocal];
+  }, [customCharacters, publicCharacters]);
+
+  const displayedCharacters = useMemo(() => {
+    if (registryTab === 'personal') {
+      return [...CHARACTERS, ...customCharacters];
+    }
+    return publicCharacters;
+  }, [registryTab, customCharacters, publicCharacters]);
 
   const activeSession = useMemo(() => 
     sessions.find(s => s.id === activeSessionId),
@@ -126,15 +146,15 @@ export default function App() {
             <div className="absolute inset-0 bg-gold-500/[0.01] blur-3xl opacity-50" />
             
             <div className="space-y-4 relative z-10">
-              <h2 className="text-4xl md:text-5xl font-serif text-white tracking-widest uppercase">Protocol 18</h2>
+              <h2 className="text-4xl md:text-5xl font-serif text-white tracking-widest uppercase">Age Verification</h2>
               <div className="h-px w-16 bg-gold-500/50 mx-auto" />
               <p className="text-gold-500/60 font-serif italic text-xl pt-4">
-                The archives contain sensitive neural encounters
+                Please confirm your age to continue
               </p>
             </div>
 
             <p className="text-white/30 text-sm leading-relaxed font-sans max-w-sm mx-auto uppercase tracking-tighter">
-              By proceeding, you verify your existence exceeds <span className="text-white font-serif italic text-lg tracking-normal">18 cycles</span> and accept the nature of this link.
+              By proceeding, you verify that you are <span className="text-white font-serif italic text-lg tracking-normal">18 years or older</span> and accept the terms of service.
             </p>
 
             <div className="flex flex-col gap-4 relative z-10">
@@ -142,13 +162,13 @@ export default function App() {
                 onClick={() => setIsVerified(true)}
                 className="w-full py-5 bg-transparent border border-white/10 text-white font-serif italic text-2xl hover:border-gold-500/50 transition-all duration-500"
               >
-                Accept the Veil
+                I am 18+
               </button>
               <button 
                 onClick={logout}
                 className="text-[10px] uppercase tracking-[0.5em] text-white/10 hover:text-white/40 transition-colors font-sans"
               >
-                Retreat to Shadows
+                Exit
               </button>
             </div>
           </motion.div>
@@ -170,11 +190,14 @@ export default function App() {
       )}>
         <Sidebar 
           sessions={sessions}
+          characters={allCharacters}
           activeSessionId={activeSessionId}
           onSessionSelect={handleSessionSelect}
           onNewChat={handleNewChat}
           onDeleteSession={deleteSession}
           onLogout={logout}
+          settings={settings}
+          onUpdateSettings={setSettings}
         />
       </aside>
 
@@ -205,11 +228,30 @@ export default function App() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-10">
                   <div className="space-y-4">
                     <h2 className="text-4xl md:text-7xl font-serif text-white tracking-tight italic">
-                      The Archives
+                      My Library
                     </h2>
-                    <p className="text-gold-500/40 uppercase tracking-[0.5em] font-medium text-[10px] md:text-xs">
-                      Select a soul to begin your journey
-                    </p>
+                    <div className="flex items-center gap-6 pt-4">
+                      <button
+                        onClick={() => setRegistryTab('personal')}
+                        className={cn(
+                          "flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-medium transition-all duration-500 pb-2 border-b",
+                          registryTab === 'personal' ? "text-gold-500 border-gold-500" : "text-white/20 border-transparent hover:text-white/40"
+                        )}
+                      >
+                        <User size={12} />
+                        My Characters
+                      </button>
+                      <button
+                        onClick={() => setRegistryTab('global')}
+                        className={cn(
+                          "flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-medium transition-all duration-500 pb-2 border-b",
+                          registryTab === 'global' ? "text-gold-500 border-gold-500" : "text-white/20 border-transparent hover:text-white/40"
+                        )}
+                      >
+                        <Globe size={12} />
+                        Explore Registry
+                      </button>
+                    </div>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -218,19 +260,31 @@ export default function App() {
                     className="flex items-center gap-3 px-8 py-4 bg-transparent border border-white/10 rounded-none hover:border-gold-500/50 transition-all text-white/60 font-serif italic text-lg"
                   >
                     <Plus size={18} className="text-gold-500" />
-                    Forge a new identity
+                    Create Character
                   </motion.button>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 border-l border-t border-white/5">
-                  {allCharacters.map(character => (
-                    <div key={character.id} className="border-r border-b border-white/5">
-                      <CharacterCard 
-                        character={character} 
-                        onSelect={createSession} 
-                      />
+                  {publicLoading && registryTab === 'global' ? (
+                    <div className="col-span-full py-40 flex flex-col items-center justify-center space-y-4">
+                      <Loader2 className="animate-spin text-gold-500/20" size={40} strokeWidth={1} />
+                      <p className="text-gold-500/20 font-serif italic uppercase tracking-widest text-[10px]">Loading collective registry...</p>
                     </div>
-                  ))}
+                  ) : displayedCharacters.length === 0 ? (
+                    <div className="col-span-full py-40 flex flex-col items-center justify-center space-y-4 border-r border-b border-white/5">
+                      <p className="text-white/10 font-serif italic text-xl uppercase tracking-widest">Library is empty</p>
+                      <p className="text-white/5 text-[10px] uppercase tracking-[0.3em]">No characters found here.</p>
+                    </div>
+                  ) : (
+                    displayedCharacters.map(character => (
+                      <div key={character.id} className="border-r border-b border-white/5">
+                        <CharacterCard 
+                          character={character} 
+                          onSelect={createSession} 
+                        />
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -248,6 +302,7 @@ export default function App() {
                 onSendMessage={(content, role) => addMessage(content, role)}
                 onClearChat={clearChat}
                 onMenuToggle={() => setIsSidebarOpen(true)}
+                settings={settings}
               />
             </motion.div>
           ) : (
@@ -268,12 +323,12 @@ export default function App() {
 
               <div className="relative group">
                 <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-500/20 to-transparent -top-10" />
-                <h3 className="text-4xl md:text-6xl font-serif text-white tracking-widest italic opacity-80">Silent Archives</h3>
+                <h3 className="text-4xl md:text-6xl font-serif text-white tracking-widest italic opacity-80">Welcome to Prai</h3>
                 <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-500/20 to-transparent -bottom-10" />
               </div>
 
               <p className="text-gold-500/30 max-w-sm font-serif italic text-lg md:text-xl">
-                The connection is dormant. Choose a soul from the library or manifest a new one.
+                Ready to talk? Choose a character from your library or create a new one.
               </p>
 
               <motion.button
@@ -282,7 +337,7 @@ export default function App() {
                 onClick={() => setIsSelectingCharacter(true)}
                 className="px-12 py-5 bg-transparent border border-gold-500/20 text-gold-500/60 font-serif italic text-2xl hover:text-gold-400 hover:border-gold-500/50 transition-all duration-700"
               >
-                Access the Library
+                Browse Characters
               </motion.button>
             </motion.div>
           )}

@@ -12,7 +12,12 @@ export interface Character {
   avatar: string;
   systemPrompt: string;
   theme: string;
+  greeting?: string;
   isCustom?: boolean;
+  isPublic?: boolean;
+  authorId?: string;
+  authorName?: string;
+  createdAt?: number;
 }
 
 export interface ChatSession {
@@ -20,4 +25,9 @@ export interface ChatSession {
   characterId: string;
   messages: Message[];
   updatedAt: number;
+}
+
+export interface UserSettings {
+  displayName: string;
+  isNsfw: boolean;
 }

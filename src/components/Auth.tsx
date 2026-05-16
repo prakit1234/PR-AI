@@ -1,14 +1,26 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { LogIn } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
+import { cn } from '../lib/utils';
 
 export default function Auth() {
+  const [isLoading, setIsLoading] = useState(false);
+
   const login = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed", error);
+    } catch (error: any) {
+      if (error.code === 'auth/cancelled-popup-request') {
+        console.warn("Login popup was already open or cancelled.");
+      } else {
+        console.error("Login failed", error);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -39,12 +51,16 @@ export default function Auth() {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={!isLoading ? { scale: 1.02, y: -2 } : {}}
+            whileTap={!isLoading ? { scale: 0.98 } : {}}
             onClick={login}
-            className="w-full py-5 px-8 bg-transparent border border-white/10 text-white font-serif italic text-xl hover:border-gold-500/50 transition-all duration-500"
+            disabled={isLoading}
+            className={cn(
+              "w-full py-5 px-8 bg-transparent border border-white/10 text-white font-serif italic text-xl transition-all duration-500",
+              isLoading ? "opacity-50 cursor-not-allowed" : "hover:border-gold-500/50"
+            )}
           >
-            Enter the Presence
+            {isLoading ? "Opening Archives..." : "Enter the Presence"}
           </motion.button>
 
           <p className="text-[10px] uppercase tracking-[0.5em] text-white/10 font-sans">
